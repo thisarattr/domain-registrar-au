@@ -1,0 +1,56 @@
+package org.thisarattr.domain.registrar;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+import org.thisarattr.domain.registrar.exception.DomainRegistrarBusinessException;
+import org.thisarattr.domain.registrar.service.DomainRegistrarService;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+public class App {
+
+	public static void main(String[] args) throws DomainRegistrarBusinessException {
+		PropertyConfigurator.configure("log4j.properties");
+		Logger logger = (Logger) Logger.getLogger(App.class);
+		Injector injector = Guice.createInjector(new AppInjector());
+		DomainRegistrarService domainRegistrarService = injector.getInstance(DomainRegistrarService.class);
+		
+		Map<String, Double> domainList = new HashMap<String, Double>();
+		String filePath = domainRegistrarService.processInput(args, domainList);
+		if (filePath != null) {
+			try {
+				domainRegistrarService.readFile(filePath, domainList);
+			} catch (IOException e) {
+				System.out.println("failed to read file:" + filePath);
+			}
+		}
+		BigDecimal total = domainRegistrarService.calculate(domainList);
+		System.out.println("Total: "+total);
+		
+
+		domainList.put("a-domain.com", 1D);
+		//domainList.put(null, 1D);
+		domainList.put("another-domain.net", 2D);
+		domainList.put("dict.com", 5D);
+		BigDecimal val = domainRegistrarService.calculate(domainList);
+		logger.info("val:: " + NumberFormat.getCurrencyInstance().format(val));
+		
+		
+		Map<String, Double> domainList2 = new HashMap<String, Double>();
+		domainList2.put("a-domain.com", 1D);
+		domainList2.put("dict.com", 5D);
+		BigDecimal val2 = domainRegistrarService.calculate(domainList2);
+		logger.info("val2:: " + NumberFormat.getCurrencyInstance().format(val2));
+		
+		
+		
+		//BigDecimal val3 = priceCalculator.calculate(null);
+	}
+}
