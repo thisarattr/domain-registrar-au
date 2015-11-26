@@ -68,11 +68,17 @@ public class DomainDaoBasicImpl implements DomainDao {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.thisarattr.domain.registrar.dao.DomainDao#getPremium(java.lang.String)
+	 */
 	@Override
 	public Domain getPremium(String name) throws DomainRegistrarDaoException {
 		return get(name, DomainType.PREMIUM);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.thisarattr.domain.registrar.dao.DomainDao#get(java.lang.String, org.thisarattr.domain.registrar.model.Domain.DomainType)
+	 */
 	@Override
 	public Domain get(String name, DomainType type) throws DomainRegistrarDaoException {
 		if (name == null || type == null) {
@@ -89,6 +95,9 @@ public class DomainDaoBasicImpl implements DomainDao {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.thisarattr.domain.registrar.dao.DomainDao#getOrdinary(java.lang.String)
+	 */
 	@Override
 	public Domain getOrdinary(String name) throws DomainRegistrarDaoException {
 		return get(name, DomainType.ORDINARY);

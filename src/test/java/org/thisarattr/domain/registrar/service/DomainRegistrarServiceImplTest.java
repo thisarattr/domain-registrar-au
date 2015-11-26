@@ -3,7 +3,9 @@ package org.thisarattr.domain.registrar.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -87,5 +89,82 @@ public class DomainRegistrarServiceImplTest {
 		
 		Mockito.verify(domainDao).get("a-domain.com", DomainType.ORDINARY);
 	}
+	
+	@Test
+	public void testReadFile() throws IOException {
+		String path = "resources/domain-names.csv";
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		domainRegistrarService.readFile(path, domainList);
+		assertEquals(1.0d, domainList.get("a-domain.com"), 0.001);
+		assertEquals(2.0d, domainList.get("another-domain.net"), 0.001);
+		assertEquals(5.0d, domainList.get("dict.com"), 0.001);
+	}
+	
+	@Test
+	public void testReadFileNConsoleInputs() throws IOException {
+		String path = "resources/domain-names.csv";
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		domainList.put("a-domain.com", 2.0D);
+		domainRegistrarService.readFile(path, domainList);
+		assertEquals(3.0d, domainList.get("a-domain.com"), 0.001);
+		assertEquals(2.0d, domainList.get("another-domain.net"), 0.001);
+		assertEquals(5.0d, domainList.get("dict.com"), 0.001);
+	
+	}
+	
+	@Test(expected=NoSuchFileException.class)
+	public void negativeTestReadFile() throws IOException {
+		String path = "resources/domain-names.csv.invalid";
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		domainRegistrarService.readFile(path, domainList);
+	}
+	
+	@Test
+	public void testReadFileSkipParseError() throws IOException {
+		String path = "resources/test-domain-names.csv";
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		domainRegistrarService.readFile(path, domainList);
+		assertEquals(null, domainList.get("a-domain.com"));
+		assertEquals(2.0d, domainList.get("another-domain.net"), 0.001);
+		assertEquals(null, domainList.get("dict.com"));
+	}
 
+	@Test
+	public void testProcessInputBothNP() throws IOException {
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		String[] args = new String[] {"-n", "a-domain.com,2", "-p", "resources/domain-names.csv", "-n", "dict.com,1"};
+		String filePath = domainRegistrarService.processInput(args, domainList);
+		assertEquals(2d, domainList.get("a-domain.com"), 0.001);
+		assertEquals(null, domainList.get("another-domain.net"));
+		assertEquals(1d, domainList.get("dict.com") ,0.001);
+		assertEquals("resources/domain-names.csv", filePath);
+	}
+	
+	@Test
+	public void testProcessInputPath() throws IOException {
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		String[] args = new String[] {"-p", "resources/domain-names.csv"};
+		String filePath = domainRegistrarService.processInput(args, domainList);
+		assertEquals("resources/domain-names.csv", filePath);
+	}
+	
+	@Test
+	public void testProcessInputParams() throws IOException {
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		String[] args = new String[] {"-n", "a-domain.com,2", "-n", "dict.com,1"};
+		domainRegistrarService.processInput(args, domainList);
+		assertEquals(2d, domainList.get("a-domain.com"), 0.001);
+		assertEquals(null, domainList.get("another-domain.net"));
+		assertEquals(1d, domainList.get("dict.com") ,0.001);
+	}
+	
+	@Test
+	public void testProcessInputInvalidParams() throws IOException {
+		Map<String, Double> domainList =  new HashMap<String, Double>();
+		String[] args = new String[] {"-n", "-n", "a-domain.com,2", "-n", "dict.com,1"};
+		domainRegistrarService.processInput(args, domainList);
+		assertEquals(2d, domainList.get("a-domain.com"), 0.001);
+		assertEquals(null, domainList.get("another-domain.net"));
+		assertEquals(1d, domainList.get("dict.com") ,0.001);
+	}
 }
