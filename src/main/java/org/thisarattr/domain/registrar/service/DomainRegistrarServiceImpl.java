@@ -35,6 +35,9 @@ public class DomainRegistrarServiceImpl implements DomainRegistrarService {
 	private DomainDao domainDao;
 	private Logger logger = (Logger) Logger.getLogger(DomainRegistrarServiceImpl.class);
 
+	/* (non-Javadoc)
+	 * @see org.thisarattr.domain.registrar.service.DomainRegistrarService#calculate(java.util.Map)
+	 */
 	@Override
 	public BigDecimal calculate(Map<String, Double> domainList) throws DomainRegistrarBusinessException {
 		if (domainList == null || domainList.isEmpty()) {
@@ -74,6 +77,9 @@ public class DomainRegistrarServiceImpl implements DomainRegistrarService {
 		return sum;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.thisarattr.domain.registrar.service.DomainRegistrarService#processInput(java.lang.String[], java.util.Map)
+	 */
 	@Override
 	public String processInput(String[] args, Map<String, Double> domainList) {
 		String filePath = null;
@@ -93,13 +99,22 @@ public class DomainRegistrarServiceImpl implements DomainRegistrarService {
 	private void populateDomainList(Map<String, Double> domainList, String[] vals) {
 		if (vals.length == 2) {
 			try {
-				domainList.put(vals[0].toLowerCase(), Double.valueOf(vals[1]));
+				String key = vals[0].toLowerCase();
+				Double value = Double.valueOf(vals[1]);
+				if (domainList.containsKey(key)) {
+					domainList.put(key, domainList.get(key) + value);
+				} else {
+					domainList.put(key, value);
+				}
 			} catch (NumberFormatException e) {
 				logger.info("failed to parse value:" + vals[1] + ", skip...");
 			}
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.thisarattr.domain.registrar.service.DomainRegistrarService#readFile(java.lang.String, java.util.Map)
+	 */
 	@Override
 	public void readFile(String filePath, Map<String, Double> domainList) throws IOException {
 		try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
